@@ -1,9 +1,9 @@
 use failure::Error;
 
 mod poker;
+mod prime_digit_replacements;
 
 use euler::EulerContext;
-use self::poker::PokerProblem;
 
 pub trait EulerProblem {
     fn name(&self) -> &'static str;
@@ -11,7 +11,7 @@ pub trait EulerProblem {
 }
 
 macro_rules! euler_problems {
-    ($target:ident, { $($name:expr => $problem:ident),* }) => {
+    ($target:ident, { $($name:expr => $problem:path),* }) => {
         Ok(match $target {
             $ ( $name => Box::new(< $ problem as Default >::default()), ) *
             _ => return Err(format_err!("Unknown problem: {}", $target))
@@ -20,7 +20,8 @@ macro_rules! euler_problems {
 }
 pub fn create_problem(name: &str) -> Result<Box<EulerProblem>, Error> {
     euler_problems!(name, {
-        "poker" => PokerProblem
+        "poker" => self::poker::PokerProblem,
+        "prime_digit_replacements" => self::prime_digit_replacements::PrimeDigitReplacementProblem
     })
 }
 
