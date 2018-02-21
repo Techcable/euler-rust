@@ -6,6 +6,7 @@ use ndarray::prelude::*;
 use itertools::Itertools;
 
 use super::{EulerProblem, EulerContext};
+use utils::Digits;
 
 /// The solution to the prime digit replacement problem,
 /// originally solved here `https://gist.github.com/Techcable/965341b217ae82defe1f541b3118c328`.
@@ -40,7 +41,7 @@ fn digit_replacement_prime_families(bound_digits: usize, minimum_size: usize) ->
     assert!(bound_digits != 5 || digit_replacement_combinations.contains(&vec![2, 3]));
     let prime_digit_map = matrix.prime_digits.iter().cloned()
         .zip_eq(matrix.primes.iter().cloned())
-        .collect::<HashMap<Vec<usize>, u64>>();
+        .collect::<HashMap<Digits, u64>>();
     for prime_digits in matrix.prime_digits.iter() {
         if prime_digits[0] == 0 { continue }
         // Try replacing parts of the digits
@@ -49,9 +50,9 @@ fn digit_replacement_prime_families(bound_digits: usize, minimum_size: usize) ->
             let mut prime_family = Vec::with_capacity(minimum_size);
             for value in 0u8..10 {
                 for &index in replacement_indexes {
-                    digits[index] = value as usize
+                    digits.insert(index, value)
                 }
-                if matrix.matrix[&*digits] && digits[0] != 0 {
+                if matrix.matrix[digits] && digits[0] != 0 {
                     prime_family.push(prime_digit_map[&digits])
                 }
             }
@@ -66,7 +67,7 @@ fn digit_replacement_prime_families(bound_digits: usize, minimum_size: usize) ->
 
 pub struct PrimeDigitMatrix {
     primes: Vec<u64>,
-    prime_digits: Vec<Vec<usize>>,
+    prime_digits: Vec<Digits>,
     matrix: Array<bool, IxDyn>
 }
 
@@ -76,12 +77,24 @@ impl PrimeDigitMatrix {
         let mut prime_digits = Vec::new();
         let mut matrix = Array::<bool, _>::default(IxDyn(&vec![10; amount]));
         for &prime in &primes {
-            let digits = ::utils::digits_of(prime, amount).iter()
-                .map(|&i| i as usize)
-                .collect::<Vec<usize>>();
-            matrix[&*digits] = true;
+            let digits = Digits::from_value(prime).padded(amount);
+            matrix[digits] = true;
             prime_digits.push(digits);
         }
         PrimeDigitMatrix { primes, prime_digits, matrix }
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    #[ignore]
+    fn check_solutions() {
+        // This is the example solution
+        assert_eq!(digit_replacement_prime_families(5, 7).unwrap().0, 56003);
+        // This is the solution to the primary problem
+        assert_eq!(digit_replacement_prime_families(6, 8).unwrap().0, 121313);
+    }
+
 }
