@@ -2,6 +2,7 @@ use failure::Error;
 
 mod poker;
 mod prime_digit_replacements;
+mod lychrel_numbers;
 
 use euler::EulerContext;
 
@@ -21,6 +22,7 @@ macro_rules! euler_problems {
 pub fn create_problem(name: &str) -> Result<Box<EulerProblem>, Error> {
     euler_problems!(name, {
         "poker" => self::poker::PokerProblem,
+        "lychrel_numbers" => self::lychrel_numbers::LychrelNumbersProblem,
         "prime_digit_replacements" => self::prime_digit_replacements::PrimeDigitReplacementProblem
     })
 }
