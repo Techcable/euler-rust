@@ -3,6 +3,7 @@ use failure::Error;
 mod poker;
 mod prime_digit_replacements;
 mod lychrel_numbers;
+mod powerful_digit_sum;
 
 use euler::EulerContext;
 
@@ -23,7 +24,8 @@ pub fn create_problem(name: &str) -> Result<Box<EulerProblem>, Error> {
     euler_problems!(name, {
         "poker" => self::poker::PokerProblem,
         "lychrel_numbers" => self::lychrel_numbers::LychrelNumbersProblem,
-        "prime_digit_replacements" => self::prime_digit_replacements::PrimeDigitReplacementProblem
+        "prime_digit_replacements" => self::prime_digit_replacements::PrimeDigitReplacementProblem,
+        "powerful_digit_sum" => self::powerful_digit_sum::PowerfulDigitSumProblem
     })
 }
 

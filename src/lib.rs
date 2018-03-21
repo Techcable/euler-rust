@@ -1,10 +1,13 @@
-#![feature(inclusive_range_syntax, const_fn)]
+#![feature(const_fn)]
 #![allow(dead_code, unused_imports)]
 #[macro_use]
 extern crate failure;
 extern crate fixedbitset;
 extern crate ndarray;
 extern crate itertools;
+extern crate num;
+#[macro_use]
+extern crate lazy_static;
 
 use failure::Error;
 
