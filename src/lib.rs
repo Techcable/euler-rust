@@ -1,4 +1,4 @@
-#![feature(const_fn)]
+#![feature(const_fn, box_syntax, extra_log_consts)]
 #![allow(dead_code, unused_imports)]
 #[macro_use]
 extern crate failure;
@@ -8,6 +8,7 @@ extern crate itertools;
 extern crate num;
 #[macro_use]
 extern crate lazy_static;
+extern crate num_traits;
 
 use failure::Error;
 
