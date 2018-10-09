@@ -1,4 +1,4 @@
-#![feature(const_fn, box_syntax, extra_log_consts)]
+#![feature(const_fn, box_syntax, extra_log_consts, duration_float)]
 #![allow(dead_code, unused_imports)]
 #[macro_use]
 extern crate failure;

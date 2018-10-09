@@ -32,11 +32,12 @@ impl NumberSpiral {
         result
     }
     fn expand(&self) -> NumberSpiral {
+        let timer = ::utils::DebugTimer::start();
         let old_size = self.size();
         let new_size = old_size + 2;
         let old_last = self.last();
         trace!("Old last: {}", old_last);
-        NumberSpiral(Array2::from_shape_fn(
+        let spiral = NumberSpiral(Array2::from_shape_fn(
             (new_size, new_size),
             |(a, b)| {
                 let y = new_size - a - 1;
@@ -89,7 +90,9 @@ impl NumberSpiral {
                     v
                 }
             }
-        ))
+        ));
+        timer.finish_with(|| format!("Expanded spiral to {}", new_size));
+        spiral
     }
     fn diagonal_positions(&self) -> Vec<(usize, usize)> {
         let size = self.size();
@@ -198,10 +201,6 @@ mod test {
         [42, 21, 22, 23, 24, 25, 26],
         [43, 44, 45, 46, 47, 48, 49]
     ];
-    #[test]
-    fn check_answer() {
-
-    }
     #[test]
     fn given_prime_ratio() {
         // They told us it'd be 8/3 for a spiral level 4
