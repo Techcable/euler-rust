@@ -2,6 +2,7 @@ extern crate euler;
 #[macro_use]
 extern crate clap;
 extern crate failure;
+extern crate env_logger;
 
 use std::process::exit;
 
@@ -15,6 +16,7 @@ fn app() -> ::clap::App<'static, 'static> {
 }
 
 fn main() {
+    ::env_logger::init();
     let matches = app().get_matches();
     let name = matches.value_of("problem").unwrap();
     match ::euler::solve_problem(name) {

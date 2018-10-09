@@ -106,7 +106,7 @@ impl EulerProblem for SquareRootConvergentsProblem {
         let mut count = 0;
         for i in 0..1000 {
             if (i + 1) % 50 == 0 {
-                eprintln!("Computed {} expansions", i + 1);
+                debug!("Computed {} expansions", i + 1);
             }
             let expansion = square_root_expansion(i);
             let frac = expansion.simplify();

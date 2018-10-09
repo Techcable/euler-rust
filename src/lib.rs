@@ -9,6 +9,9 @@ extern crate num;
 #[macro_use]
 extern crate lazy_static;
 extern crate num_traits;
+#[macro_use]
+extern crate log;
+extern crate env_logger;
 
 use failure::Error;
 
