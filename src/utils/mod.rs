@@ -10,6 +10,7 @@ use std::time::Instant;
 use itertools::Itertools;
 use itertools::EitherOrBoth::*;
 
+mod sieve;
 mod digits;
 mod integer_logarithm;
 
@@ -40,34 +41,7 @@ impl DebugTimer {
     }
 }
 
-/// Make a bitset of all primes less than the specified value.
-///
-/// Internally this uses the sieve of eratosthenes for simplicity,
-/// as it's very fast for finding prime values.
-pub fn prime_set(limit: u64) -> FixedBitSet {
-    assert!(limit <= (usize::max_value() as u64));
-    let timer = DebugTimer::start();
-    let mut is_prime = FixedBitSet::with_capacity(limit as usize);
-    is_prime.set_range(2.., true);
-    for i in 2..((limit as f64).sqrt().ceil() as usize) {
-        if is_prime[i] {
-            let mut j = i * i;
-            while j < (limit as usize) {
-                is_prime.set(j, false);
-                j += i;
-            }
-        }
-    }
-    timer.finish_with(|| format!("Computed prime set of {}", limit));
-    is_prime
-}
-
-/// List of all primes less than the specified value.
-///
-/// Internally this is just a simple wrapper around `prime_set`.
-pub fn primes(limit: u64) -> Vec<u64> {
-    prime_set(limit).ones().map(|i| i as u64).collect()
-}
+pub use self::sieve::{prime_set, primes};
 
 /// Find a reasonable approximation of the first input
 /// where the function returns true.
@@ -82,13 +56,20 @@ pub fn guess_first_match<F, T>(mut func: F) -> T
     guess
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn test_primes() {
-        assert_eq!(primes(2), vec![]);
-        assert_eq!(primes(14), vec![2, 3, 5, 7, 11, 13]);
-        assert_eq!(primes(32), vec![2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31]);
+pub unsafe trait ArbitraryBytes {}
+unsafe impl ArbitraryBytes for u64 {}
+unsafe impl ArbitraryBytes for u32 {}
+unsafe impl ArbitraryBytes for usize {}
+
+#[inline]
+pub fn clear_slice<T: ArbitraryBytes>(slice: &mut [T]) {
+    // Nothing is faster than memset
+    write_bytes_slice(slice, 0)
+}
+#[inline]
+pub fn write_bytes_slice<T: ArbitraryBytes>(slice: &mut [T], value: u8) {
+    unsafe {
+        let len = slice.len();
+        slice.as_mut_ptr().write_bytes(value, len)
     }
 }
