@@ -5,6 +5,7 @@ mod prime_digit_replacements;
 mod lychrel_numbers;
 mod powerful_digit_sum;
 mod square_root_convergents;
+mod spiral_primes;
 
 use euler::EulerContext;
 
@@ -32,7 +33,8 @@ pub fn create_problem(name: &str) -> Result<Box<EulerProblem>, Error> {
         "lychrel_numbers" => self::lychrel_numbers::LychrelNumbersProblem,
         "prime_digit_replacements" => self::prime_digit_replacements::PrimeDigitReplacementProblem,
         "powerful_digit_sum" => self::powerful_digit_sum::PowerfulDigitSumProblem,
-        "square_root_convergents" => self::square_root_convergents::SquareRootConvergentsProblem
+        "square_root_convergents" => self::square_root_convergents::SquareRootConvergentsProblem,
+        "spiral_primes" => self::spiral_primes::SpiralPrimeProblem
     })
 }
 

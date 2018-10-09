@@ -15,11 +15,12 @@ mod integer_logarithm;
 pub use self::digits::{Digits, BigDigits};
 pub use self::integer_logarithm::IntegerLogarithm;
 
-/// List of all primes less than the specified value.
+
+/// Make a bitset of all primes less than the specified value.
 ///
 /// Internally this uses the sieve of eratosthenes for simplicity,
 /// as it's very fast for finding prime values.
-pub fn primes(limit: u64) -> Vec<u64> {
+pub fn prime_set(limit: u64) -> FixedBitSet {
     assert!(limit <= (usize::max_value() as u64));
     let mut is_prime = FixedBitSet::with_capacity(limit as usize);
     is_prime.set_range(2.., true);
@@ -32,7 +33,27 @@ pub fn primes(limit: u64) -> Vec<u64> {
             }
         }
     }
-    is_prime.ones().map(|i| i as u64).collect()
+    is_prime
+}
+
+/// List of all primes less than the specified value.
+///
+/// Internally this is just a simple wrapper around `prime_set`.
+pub fn primes(limit: u64) -> Vec<u64> {
+    prime_set(limit).ones().map(|i| i as u64).collect()
+}
+
+/// Find a reasonable approximation of the first input
+/// where the function returns true.
+pub fn guess_first_match<F, T>(mut func: F) -> T
+    where F: FnMut(T) -> bool, T: Ord + ::num::PrimInt + ::std::ops::MulAssign {
+    if func(T::zero()) { return T::zero() }
+    let mut guess = T::one();
+    let two = T::from(2).unwrap();
+    while !func(guess) {
+        guess *= two;
+    }
+    guess
 }
 
 #[cfg(test)]
