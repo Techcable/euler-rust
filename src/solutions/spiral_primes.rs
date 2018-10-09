@@ -152,6 +152,51 @@ impl NumberSpiral {
     }
 }
 
+pub struct SpiralDiagonals {
+    // NOTE: Has implicit one in center
+    outer_levels: Vec<[u64; 4]>,
+}
+impl SpiralDiagonals {
+    #[inline]
+    pub fn new() -> SpiralDiagonals {
+        SpiralDiagonals::with_levels(1)
+    }
+    pub fn with_levels(levels: usize) -> SpiralDiagonals {
+        assert!(levels >= 1);
+        let mut result = SpiralDiagonals { outer_levels: Vec::new() };
+        result.generate_diagonal_levels(levels - 1);
+        debug_assert_eq!(result.level(), levels);
+        result
+    }
+    #[inline]
+    fn len(&self) -> usize {
+        self.outer_levels.len() * 4 + 1
+    }
+    #[inline]
+    fn level(&self) -> usize {
+        self.outer_levels.len() + 1
+    }
+    #[inline]
+    fn last(&self) -> u64 {
+        self.outer_levels.last().map_or(1, |level| level[3])
+    }
+    fn generate_diagonal_levels(&mut self, amount: usize) {
+        let timer = ::utils::DebugTimer::start();
+        for _ in 0..amount {
+            let last = self.last();
+            let level = self.level();
+            let amount = level as u64 * 2;
+            let mut value = last;
+            let mut level = [0u64; 4];
+            for i in 0..4 {
+                value += amount;
+                level[i] = value;
+            }
+            self.outer_levels.push(level);
+        }
+        timer.finish_with(|| format!("Generated {} levels of spiral diagonals", amount))
+    }
+}
 #[derive(Default)]
 pub struct SpiralPrimeProblem;
 impl EulerProblem for SpiralPrimeProblem {
@@ -160,19 +205,46 @@ impl EulerProblem for SpiralPrimeProblem {
     }
 
     fn solve(&self, _context: &EulerContext) -> Result<String, Error> {
-        let mut spiral = NumberSpiral::with_size(2);
+        let mut diagonals = SpiralDiagonals::new();
         let threshold = Ratio::new(1, 10);
+        let mut prime_count = 0;
         loop {
-            let ratio = spiral.prime_ratio();
+            let start = diagonals.level();
+            diagonals.generate_diagonal_levels(1000);
+            let primes = ::utils::prime_set(diagonals.last() + 1);
+            let timer = ::utils::DebugTimer::start();
+            let mut ratio_range: Option<(f64, f64)> = None;
+            for (offset, values) in diagonals.outer_levels[start..].iter().enumerate() {
+                let level = start + offset;
+                for &value in values {
+                    if primes.contains(value as usize) {
+                        prime_count += 1;
+                    }
+                }
+                let ratio = prime_count as f64 / total_values as f64;
+                ratio_range = Some(match ratio_range {
+                    Some((min_ratio, max_ratio)) => {
+                        (min_ratio.min(ratio), max_ratio.max(ratio))
+                    },
+                    None => (ratio, ratio)
+                });
+                trace!(
+                    "Diagonal level {} with {}/{} primes ({:.2}%)",
+                    level, prime_count, total_values, ratio * 100.0
+                );
+                if ratio < 0.10 {
+                    //assert!(NumberSpiral::with_size(level).prime_ratio() < threshold);
+                    return Ok(format!("{}", level))
+                }
+            }
             info!(
-                "Ratio {} for spiral size {}",
-                *ratio.numer() as f64 / *ratio.denom() as f64,
-                spiral.size()
+                "Checked 1000 levels of spiral with ratios {}",
+                ratio_range.map_or_else(|| "unknown".into(), |(min_ratio, max_ratio)| {
+                    format!("between {:.2}% and {:.2}%", min_ratio * 100.0, max_ratio * 100.0)
+                })
             );
-            if ratio < threshold { break }
-            spiral = spiral.expand();
+            timer.finish_with(|| "Checked 1000 levels of primes");
         }
-        Ok(format!("{}", spiral.size()))
     }
 }
 
@@ -243,6 +315,12 @@ mod test {
                 (5, 1),
                 (6, 0)
             ]
+        );
+        let mut diagonal_values = spiral.diagonals().collect::<Vec<_>>();
+        diagonal_values.sort();
+        assert_eq!(
+            diagonal_values,
+            SpiralDiagonals::with_levels(4).values
         )
     }
 }
