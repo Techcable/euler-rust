@@ -11,6 +11,7 @@ extern crate lazy_static;
 extern crate num_traits;
 #[macro_use]
 extern crate log;
+extern crate arrayvec;
 extern crate env_logger;
 
 use failure::Error;

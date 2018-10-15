@@ -86,8 +86,17 @@ impl IncrementalPrimeSet {
     }
     #[inline]
     pub fn contains(&self, prime: u64) -> bool{
-        prime <= (usize::max_value() as u64)
-            && self.set.contains(prime as usize)
+        assert!(prime <= (self.set.len() as u64));
+        self.set.contains(prime as usize)
+    }
+    /// Check if the specified value is prime,
+    /// lazily expanding the set if needed
+    pub fn check_prime(&mut self, value: u64) -> bool {
+        if value >= self.limit() {
+            let old_limit = self.limit();
+            self.expand((value + 1000).max(old_limit * 2));
+        }
+        self.contains(value)
     }
 }
 
