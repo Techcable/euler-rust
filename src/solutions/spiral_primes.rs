@@ -1,6 +1,9 @@
+use std::iter;
+
 use failure::Error;
 use ndarray::{Array2, ArrayView2};
 use num::rational::Ratio;
+use utils::primes::IncrementalPrimeSet;
 
 use euler::EulerContext;
 use super::EulerProblem;
@@ -180,6 +183,10 @@ impl SpiralDiagonals {
     fn last(&self) -> u64 {
         self.outer_levels.last().map_or(1, |level| level[3])
     }
+    fn iter<'a>(&'a self) -> impl Iterator<Item=u64> + 'a {
+        iter::once(1).chain(self.outer_levels.iter()
+            .flat_map(|values| values.iter().cloned()))
+    }
     fn generate_diagonal_levels(&mut self, amount: usize) {
         let timer = ::utils::DebugTimer::start();
         for _ in 0..amount {
@@ -197,6 +204,13 @@ impl SpiralDiagonals {
         timer.finish_with(|| format!("Generated {} levels of spiral diagonals", amount))
     }
 }
+/// Solutions which the website says are incorrect
+const INCORRECT_SOLUTIONS: &[usize] = &[
+    13120,
+    13119,
+    26239,
+    26237
+];
 #[derive(Default)]
 pub struct SpiralPrimeProblem;
 impl EulerProblem for SpiralPrimeProblem {
@@ -208,20 +222,27 @@ impl EulerProblem for SpiralPrimeProblem {
         let mut diagonals = SpiralDiagonals::new();
         let threshold = Ratio::new(1, 10);
         let mut prime_count = 0;
+        let mut found_spiral_primes = Vec::new();
+        let mut found_diagonals = Vec::new();
+        let mut total_count = 1;
+        let mut prime_set = IncrementalPrimeSet::new();
         loop {
-            let start = diagonals.level();
+            let old_level_len = diagonals.outer_levels.len();
             diagonals.generate_diagonal_levels(1000);
-            let primes = ::utils::prime_set(diagonals.last() + 1);
+            prime_set.expand(diagonals.last() + 1);
             let timer = ::utils::DebugTimer::start();
-            let mut ratio_range: Option<(f64, f64)> = None;
-            for (offset, values) in diagonals.outer_levels[start..].iter().enumerate() {
-                let level = start + offset;
+            let mut ratio_range: Option<(Ratio<usize>, Ratio<usize>)> = None;
+            for (offset, values) in diagonals.outer_levels[old_level_len..].iter().enumerate() {
+                let level = old_level_len + offset;
                 for &value in values {
-                    if primes.contains(value as usize) {
+                    if prime_set.contains(value) {
                         prime_count += 1;
+                        found_spiral_primes.push(value);
                     }
+                    found_diagonals.push(value);
+                    total_count += 1;
                 }
-                let ratio = prime_count as f64 / total_values as f64;
+                let ratio = Ratio::new(prime_count, total_count);
                 ratio_range = Some(match ratio_range {
                     Some((min_ratio, max_ratio)) => {
                         (min_ratio.min(ratio), max_ratio.max(ratio))
@@ -230,16 +251,21 @@ impl EulerProblem for SpiralPrimeProblem {
                 });
                 trace!(
                     "Diagonal level {} with {}/{} primes ({:.2}%)",
-                    level, prime_count, total_values, ratio * 100.0
+                    level, prime_count, total_count, (prime_count as f64 / total_count as f64) * 100.0
                 );
-                if ratio < 0.10 {
+                if ratio < threshold {
+                    let side_length = (level * 2) - 1;
+                    debug_assert!(!INCORRECT_SOLUTIONS.contains(&side_length), "Incorrect solution: {}", level);
                     //assert!(NumberSpiral::with_size(level).prime_ratio() < threshold);
-                    return Ok(format!("{}", level))
+                    return Ok(format!("{}", side_length))
                 }
             }
+            assert_eq!(total_count, diagonals.len());
             info!(
                 "Checked 1000 levels of spiral with ratios {}",
                 ratio_range.map_or_else(|| "unknown".into(), |(min_ratio, max_ratio)| {
+                    let min_ratio = *min_ratio.numer() as f64 / *max_ratio.denom() as f64;
+                    let max_ratio = *max_ratio.numer() as f64 / *max_ratio.denom() as f64;
                     format!("between {:.2}% and {:.2}%", min_ratio * 100.0, max_ratio * 100.0)
                 })
             );
@@ -317,10 +343,25 @@ mod test {
             ]
         );
         let mut diagonal_values = spiral.diagonals().collect::<Vec<_>>();
+        let diagonals = SpiralDiagonals::with_levels(4);
+        let direct_values = diagonals.iter().collect::<Vec<_>>();
         diagonal_values.sort();
         assert_eq!(
             diagonal_values,
-            SpiralDiagonals::with_levels(4).values
+            direct_values
+        )
+    }
+    #[test]
+    fn direct_spiral_diagonals_long() {
+        ::env_logger::init();
+        let spiral = NumberSpiral::with_size(1000);
+        let diagonals = SpiralDiagonals::with_levels(1000);
+        let mut diagonal_values = spiral.diagonals().collect::<Vec<_>>();
+        let direct_values = diagonals.iter().collect::<Vec<_>>();
+        diagonal_values.sort();
+        assert_eq!(
+            diagonal_values,
+            direct_values
         )
     }
 }

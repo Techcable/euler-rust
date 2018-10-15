@@ -10,7 +10,7 @@ use std::time::Instant;
 use itertools::Itertools;
 use itertools::EitherOrBoth::*;
 
-mod sieve;
+pub mod primes;
 mod digits;
 mod integer_logarithm;
 
@@ -21,6 +21,7 @@ pub struct DebugTimer {
     start: Option<Instant>
 }
 impl DebugTimer {
+    #[inline]
     pub fn start() -> Self {
         let start = if log_enabled!(::log::Level::Debug) {
             // This is behind a flag since it may involve a system call
@@ -30,18 +31,24 @@ impl DebugTimer {
         };
         DebugTimer { start }
     }
+    #[inline]
     pub fn finish_with<F, T>(self, mut msg: F) where F: FnMut() -> T, T: ::std::fmt::Display {
+        if self.start.is_some() {
+            self.finish(&msg())
+        }
+    }
+    pub fn finish(self, msg: &::std::fmt::Display) {
         if let Some(start) = self.start {
             let elapsed = start.elapsed();
             debug!(
                 "{} in {:.2} ms",
-                msg(), elapsed.as_float_secs() * 1000.0
+                msg, elapsed.as_float_secs() * 1000.0
             );
         }
     }
 }
 
-pub use self::sieve::{prime_set, primes};
+pub use self::primes::{prime_set, primes};
 
 /// Find a reasonable approximation of the first input
 /// where the function returns true.

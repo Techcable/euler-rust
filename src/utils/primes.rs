@@ -36,6 +36,61 @@ const BFSZ: u64 = 1 << 16;
 const BFBTS: u64 = BFSZ * 32;
 const BFRNG: u64 = BFBTS * 2;
 
+/// A set of primes that expands incrementally
+pub struct IncrementalPrimeSet {
+    set: FixedBitSet,
+    sieve: IncrementalSieve
+}
+impl IncrementalPrimeSet {
+    pub fn new() -> IncrementalPrimeSet {
+        IncrementalPrimeSet {
+            set: FixedBitSet::default(),
+            sieve: IncrementalSieve::new()
+        }
+    }
+    pub fn with_initial_limit(limit: u64) -> IncrementalPrimeSet {
+        let mut set = IncrementalPrimeSet::new();
+        set.expand(limit);
+        set
+    }
+    pub fn expand(&mut self, limit: u64) {
+        if limit <= self.limit() { return }
+        let old_limit = self.limit();
+        assert!(limit <= (usize::max_value() as u64));
+        let timer = DebugTimer::start();
+        let primes = self.sieve.by_ref()
+            .take_while(|&p| p < limit);
+        self.set.grow(limit as usize);
+        let mut count = 0;
+        let mut start = None;
+        for prime in primes {
+            if start.is_none() { start = Some(prime); }
+            self.set.insert(prime as usize);
+            count += 1;
+        }
+        timer.finish_with(|| {
+            use std::fmt::Display;
+            let start = start.as_ref().map_or_else(
+                || &"N/A" as &Display,
+                |i| i as &Display
+            );
+            format!(
+                "Expanded prime set from {} to {}: found {} primes starting with {}",
+                old_limit, limit, count, start
+            )
+        })
+    }
+    #[inline]
+    pub fn limit(&self) -> u64 {
+        self.set.len() as u64
+    }
+    #[inline]
+    pub fn contains(&self, prime: u64) -> bool{
+        prime <= (usize::max_value() as u64)
+            && self.set.contains(prime as usize)
+    }
+}
+
 /// An incremental sieve of Eratosthenes
 ///
 /// This uses a very fast page segmentation algorithm,
@@ -57,6 +112,20 @@ impl IncrementalSieve {
             bps: None,
             buf: box [0u32; BFSZ as usize],
         }
+    }
+    pub fn generate_primes_until(&mut self, limit: u64) -> Vec<u64> {
+        let timer = DebugTimer::start();
+        let primes = self.take_while(|&n| n < limit)
+            .collect::<Vec<_>>();
+        timer.finish_with(|| {
+            use std::fmt::Display;
+            let start = primes.last().map_or_else(
+                || &"N/A" as &Display,
+                |i| i as &Display
+            );
+            format!("Incrementally computed {} primes until {}, starting with {}", primes.len(), limit, start)
+        });
+        primes
     }
     pub fn next_prime(&mut self) -> u64 {
         match self.bi {
@@ -168,12 +237,9 @@ mod test {
     fn test_incremental() {
         ::env_logger::init();
         let n = 1_000_000;
-        let timer = DebugTimer::start();
-        let incremental_primes = IncrementalSieve::new()
-            .take_while(|&i| i < n)
-            .collect::<Vec<u64>>();
-        timer.finish_with(|| format!("Incrementally computed {} primes", n));
         let primes = primes(n);
+        let incremental_primes = IncrementalSieve::new().
+            generate_primes_until(n);
         assert_eq!(incremental_primes, primes);
     }
 }
