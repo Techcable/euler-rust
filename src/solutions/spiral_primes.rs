@@ -93,7 +93,8 @@ const INCORRECT_SOLUTIONS: &[u32] = &[
     26239,
     26237,
     2763,
-    25981
+    25981,
+    26240,
 ];
 #[derive(Default)]
 pub struct SpiralPrimeProblem;
@@ -104,10 +105,9 @@ impl EulerProblem for SpiralPrimeProblem {
 
     fn solve(&self, _context: &EulerContext) -> Result<String, Error> {
         let mut prime_count = 0;
-        let mut prime_set = IncrementalPrimeSet::new();
         for (side_length, corner) in corners() {
             for &value in corner.0.iter() {
-                if prime_set.check_prime(value) {
+                if ::utils::primes::is_prime(value) {
                     prime_count += 1;
                 }
             }

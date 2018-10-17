@@ -32,6 +32,76 @@ pub fn primes(limit: u64) -> Vec<u64> {
     prime_set(limit).ones().map(|i| i as u64).collect()
 }
 
+
+
+/// Tests if a value is prime
+///
+/// Internally uses the Miller–Rabin primality test
+pub fn is_prime(value: u64) -> bool {
+    fn witness(n: u64, mut s: u64, d: u64, a: u32) -> bool {
+        // NOTE: Ported from RosettaCode C version
+        let mut x = ::utils::modular_pow(a as u64, d, n);
+        let mut y = 0;
+        debug_assert_ne!(s, 0);
+        while s != 0 {
+            y = (x * x) % n;
+            if y == 1 && x != 1 && x != n-1 {
+                return false;
+            }
+            x = y;
+            s -= 1;
+        }
+        y == 1
+    }
+    if value < 2 {
+        return false;
+    } else if value == 2 {
+        return true;
+    } else if value % 2 == 0 {
+        // Even numbers greater than two are composite
+        return false;
+    }
+    let mut d = value / 2;
+    let mut s = 1;
+    while d & 1 == 0 {
+        d /= 2;
+        s += 1;
+    }
+    needed_witnesses(value).iter()
+        .all(|&a| witness(value, s, d, a))
+}
+
+/// The witnessess needed to make the miller-rabbin test deterministic
+fn needed_witnesses(value: u64) -> &'static [u32] {
+    /*
+     * These 'witnesses' are taken from wikipedia page
+     * and make the tests deterministic assuming the value is below a certian limit.
+     * I've optimized this if chain for readability, not for speed
+     */
+    if value < 2047 {
+        &[2]
+    } else if value < 1_373_653 {
+        &[2, 3]
+    } else if value < 9_080_191 {
+        &[31, 73]
+    } else if value < 25_326_001 {
+        &[2, 3, 5]
+    } else if value < 3_215_031_751 {
+        &[2, 3, 5, 7]
+    } else if value < 4_759_123_141 {
+        &[2, 7, 61]
+    } else if value < 2_152_302_898_747 {
+        &[2, 3, 5, 7, 11]
+    } else if value < 3_474_749_660_383 {
+        &[2, 3, 5, 7, 11, 13]
+    } else if value < 341_550_071_728_321 {
+        &[2, 3, 5, 7, 11, 13, 17]
+    } else {
+        // Since value is always less than 2**64, this will always work
+        &[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37]
+    }
+}
+
 const BFSZ: u64 = 1 << 16;
 const BFBTS: u64 = BFSZ * 32;
 const BFRNG: u64 = BFBTS * 2;
