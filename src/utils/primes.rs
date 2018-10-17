@@ -107,6 +107,7 @@ const BFBTS: u64 = BFSZ * 32;
 const BFRNG: u64 = BFBTS * 2;
 
 /// A set of primes that expands incrementally
+#[deprecated(note = "Gave bad answers on Problem 58")]
 pub struct IncrementalPrimeSet {
     set: FixedBitSet,
     sieve: IncrementalSieve
@@ -174,6 +175,7 @@ impl IncrementalPrimeSet {
 ///
 /// This uses a very fast page segmentation algorithm,
 /// translated from the [Java version on rosetta code](https://web.archive.org/web/20181009211844/https://rosettacode.org/wiki/Sieve_of_Eratosthenes#Infinite_iterator_with_a_very_fast_page_segmentation_algorithm_.28sieves_odds-only.29).
+#[deprecated(note = "Gave bad answers on Problem 58")]
 pub struct IncrementalSieve {
     bi: Option<u64>,
     lowi: u64,
