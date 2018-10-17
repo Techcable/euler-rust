@@ -52,8 +52,6 @@ pub use self::primes::{prime_set, primes};
 
 pub fn modular_pow(mut base: u64, mut exponent: u64, modulus: u64) -> u64 {
     // NOTE: Taken from wikipedia
-    let original_base = base;
-    let original_exponent = exponent;
     assert_ne!(modulus, 0);
     if modulus == 1 { return 0 }
     let mut result = 1;

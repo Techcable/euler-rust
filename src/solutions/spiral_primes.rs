@@ -19,7 +19,7 @@ impl SpiralCornerIter {
     #[inline]
     pub fn new() -> SpiralCornerIter {
         SpiralCornerIter {
-            side_length: 2,
+            side_length: 3,
             last_value: 1,
         }
     }
@@ -36,7 +36,7 @@ impl Iterator for SpiralCornerIter {
         debug_assert!(self.side_length >= 2);
         let side_length = self.side_length;
         let last_value = self.last_value;
-        let offset = side_length as u64;
+        let offset = (side_length - 1) as u64;
         let corner_table = [
             last_value + offset,
             last_value + offset * 2,
@@ -130,7 +130,8 @@ impl EulerProblem for SpiralPrimeProblem {
 
 #[cfg(test)]
 mod test {
-    use super::corners;
+    use super::{corners, SpiralPrimeProblem};
+    use solutions::EulerProblem;
     use itertools::Itertools;
     #[test]
     fn test_diagonals() {
@@ -146,5 +147,9 @@ mod test {
             corners().take_until_length(7).collect_vec(),
             vec![3, 5, 7, 9, 13, 17, 21, 25, 31, 37, 43, 49]
         );
+    }
+    #[test]
+    fn check_solution() {
+        assert_eq!(SpiralPrimeProblem::solve_default(), "26241")
     }
 }
