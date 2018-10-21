@@ -1,4 +1,4 @@
-use std::{iter};
+use std::{iter, mem};
 use std::str::FromStr;
 use fixedbitset::FixedBitSet;
 use std::fmt::{self, Debug, Formatter};
@@ -16,6 +16,37 @@ mod integer_logarithm;
 
 pub use self::digits::{Digits, BigDigits};
 pub use self::integer_logarithm::IntegerLogarithm;
+
+pub fn permutations<T: Clone>(n: usize, mut values: Vec<T>) -> Vec<Vec<T>> {
+    let timer = DebugTimer::start();
+    let mut swap_count = 0;
+    let mut swap = |values: &mut Vec<T>, i1: usize, i2: usize| {
+        values.swap(i1, i2);
+        swap_count += 1;
+    };
+    // TODO: We can compute capacity using factorial
+    let mut result = Vec::new();
+    let mut c = vec![0usize; n];
+    let mut i = 0;
+    result.push(values.clone());
+    while i < n {
+        if c[i] < i {
+            if i % 2 == 0 {
+                swap(&mut values, 0, i);
+            } else {
+                swap(&mut values, c[i], i);
+            }
+            result.push(values.clone());
+            c[i] += 1;
+            i = 0;
+        } else {
+            c[i] = 0;
+            i += 1;
+        }
+    }
+    timer.finish_with(|| format!("Computed {} permutations of {} values", n, values.len()));
+    result
+}
 
 pub struct DebugTimer {
     start: Option<Instant>
@@ -94,5 +125,24 @@ pub fn write_bytes_slice<T: ArbitraryBytes>(slice: &mut [T], value: u8) {
     unsafe {
         let len = slice.len();
         slice.as_mut_ptr().write_bytes(value, len)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::permutations;
+    #[test]
+    fn test_permutations() {
+        assert_eq!(
+            permutations(3, vec![0, 1, 2]),
+            vec![
+                vec![0, 1, 2],
+                vec![1, 0, 2],
+                vec![2, 0, 1],
+                vec![0, 2, 1],
+                vec![1, 2, 0],
+                vec![2, 1, 0],
+            ]
+        );
     }
 }
