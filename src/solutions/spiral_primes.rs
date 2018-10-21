@@ -4,10 +4,6 @@ use failure::Error;
 use ndarray::{Array2, ArrayView2};
 use num::Zero;
 use num::rational::Ratio;
-use utils::primes::IncrementalPrimeSet;
-
-use euler::EulerContext;
-use super::EulerProblem;
 
 pub struct Corner([u64; 4]);
 /// An infinite iterator over the diagonals of the spiral
@@ -96,41 +92,33 @@ const INCORRECT_SOLUTIONS: &[u32] = &[
     25981,
     26240,
 ];
-#[derive(Default)]
-pub struct SpiralPrimeProblem;
-impl EulerProblem for SpiralPrimeProblem {
-    fn name(&self) -> &'static str {
-        "spiral_primes"
-    }
-
-    fn solve(&self, _context: &EulerContext) -> Result<String, Error> {
-        let mut prime_count = 0;
-        for (side_length, corner) in corners() {
-            for &value in corner.0.iter() {
-                if ::utils::primes::is_prime(value) {
-                    prime_count += 1;
-                }
-            }
-            let total_count = (2 * side_length) + 1;
-            let ratio = prime_count as f64 / total_count as f64;
-            if side_length < 10 || (side_length % 1000) == 0 {
-                debug!(
-                    "Found side length {} with ratio {}/{} ({:.2}%)",
-                    side_length, prime_count, total_count, ratio
-                );
-            }
-            if ratio < 0.1 {
-                debug_assert!(!INCORRECT_SOLUTIONS.contains(&side_length), "Incorrect solution: {}", side_length);
-                return Ok(format!("{}", side_length));
+pub fn solve() -> u32 {
+    let mut prime_count = 0;
+    for (side_length, corner) in corners() {
+        for &value in corner.0.iter() {
+            if ::utils::primes::is_prime(value) {
+                prime_count += 1;
             }
         }
-        unreachable!() // diagonals are infinite
+        let total_count = (2 * side_length) + 1;
+        let ratio = prime_count as f64 / total_count as f64;
+        if side_length < 10 || (side_length % 1000) == 0 {
+            debug!(
+                "Found side length {} with ratio {}/{} ({:.2}%)",
+                side_length, prime_count, total_count, ratio
+            );
+        }
+        if ratio < 0.1 {
+            debug_assert!(!INCORRECT_SOLUTIONS.contains(&side_length), "Incorrect solution: {}", side_length);
+            return side_length;
+        }
     }
+    unreachable!() // diagonals are infinite
 }
 
 #[cfg(test)]
 mod test {
-    use super::{corners, SpiralPrimeProblem};
+    use super::{corners, solve};
     use solutions::EulerProblem;
     use itertools::Itertools;
     #[test]
@@ -150,6 +138,6 @@ mod test {
     }
     #[test]
     fn check_solution() {
-        assert_eq!(SpiralPrimeProblem::solve_default(), "26241")
+        assert_eq!(solve(), 26241)
     }
 }

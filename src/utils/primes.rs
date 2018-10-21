@@ -110,8 +110,10 @@ const BFRNG: u64 = BFBTS * 2;
 #[deprecated(note = "Gave bad answers on Problem 58")]
 pub struct IncrementalPrimeSet {
     set: FixedBitSet,
+    #[allow(deprecated)]
     sieve: IncrementalSieve
 }
+#[allow(deprecated)]
 impl IncrementalPrimeSet {
     pub fn new() -> IncrementalPrimeSet {
         IncrementalPrimeSet {
@@ -184,6 +186,7 @@ pub struct IncrementalSieve {
     // TODO: Should this be inline?
     buf: Box<[u32; BFSZ as usize]>
 }
+#[allow(deprecated)]
 impl IncrementalSieve {
     pub fn new() -> Self {
         IncrementalSieve {
@@ -302,6 +305,7 @@ impl IncrementalSieve {
         }
     }
 }
+#[allow(deprecated)]
 impl Iterator for IncrementalSieve {
     type Item = u64;
 
@@ -315,6 +319,7 @@ impl Iterator for IncrementalSieve {
 mod test {
     use super::*;
     #[test]
+    #[allow(deprecated)]
     fn test_incremental() {
         ::env_logger::init();
         let n = 1_000_000;

@@ -5,7 +5,6 @@ use failure::Error;
 use ndarray::prelude::*;
 use itertools::Itertools;
 
-use super::{EulerProblem, EulerContext};
 use utils::Digits;
 
 /// The solution to the prime digit replacement problem,
@@ -15,19 +14,10 @@ use utils::Digits;
 /// in order to cache whether or not a certain number was prime.
 /// Once you have the digit representation of a single prime number,
 /// you can quickly determine whether the entire family is prime.
-#[derive(Copy, Clone, Default, Debug)]
-pub struct PrimeDigitReplacementProblem;
-impl EulerProblem for PrimeDigitReplacementProblem {
-    #[inline]
-    fn name(&self) -> &'static str {
-        "prime_digit_replacements"
-    }
-
-    fn solve(&self, _: &EulerContext) -> Result<String, Error> {
-        let result = digit_replacement_prime_families(6, 8)
-            .ok_or_else(|| format_err!("Unable to solve {}", self.name()))?;
-        Ok(format!("{}", result.0))
-    }
+pub fn solve() -> Result<u64, Error> {
+    let result = digit_replacement_prime_families(6, 8)
+        .ok_or_else(|| format_err!("Unable to solve prime_digit_replacmeents"))?;
+    Ok(result.0)
 }
 
 fn digit_replacement_prime_families(bound_digits: usize, minimum_size: usize) -> Option<(u64, Vec<u64>)> {

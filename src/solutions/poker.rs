@@ -4,44 +4,34 @@ use std::fmt::{self, Formatter, Display, Write};
 
 use failure::Error;
 
-use euler::EulerContext;
 use super::EulerProblem;
 
 const POKER_HANDS_TEXT: &str = include_str!("poker.txt");
 
-#[derive(Default, Debug)]
-pub struct PokerProblem;
-impl EulerProblem for PokerProblem {
-    #[inline]
-    fn name(&self) -> &'static str {
-        "poker"
-    }
-    #[inline]
-    fn solve(&self, _: &EulerContext) -> Result<String, Error> {
-        let mut hands = Vec::new();
-        for line in POKER_HANDS_TEXT.lines() {
-            let mut cards = Vec::with_capacity(10);
-            for card in line.split_whitespace() {
-                cards.push(PokerCard::parse(card)?);
-            }
-            ensure!(cards.len() == 10, "Expected 10 cards: {:?}", line);
-            hands.push((PokerHand::new(&cards[..5]), PokerHand::new(&cards[5..])));
+pub fn solve() -> Result<i32, Error> {
+    let mut hands = Vec::new();
+    for line in POKER_HANDS_TEXT.lines() {
+        let mut cards = Vec::with_capacity(10);
+        for card in line.split_whitespace() {
+            cards.push(PokerCard::parse(card)?);
         }
-        assert_eq!(hands.len(), 1000);
-        let mut wins = 0;
-        for &(ref first, ref second) in hands.iter() {
-            match first.determine_winner(second) {
-                Ordering::Greater => {
-                    wins += 1;
-                },
-                Ordering::Less => {}
-                Ordering::Equal => {
-                    panic!("Determined hands equal for {} and {}, with rank {:?}", first, second, first.rank())
-                }
+        ensure!(cards.len() == 10, "Expected 10 cards: {:?}", line);
+        hands.push((PokerHand::new(&cards[..5]), PokerHand::new(&cards[5..])));
+    }
+    assert_eq!(hands.len(), 1000);
+    let mut wins = 0;
+    for &(ref first, ref second) in hands.iter() {
+        match first.determine_winner(second) {
+            Ordering::Greater => {
+                wins += 1;
+            },
+            Ordering::Less => {}
+            Ordering::Equal => {
+                panic!("Determined hands equal for {} and {}, with rank {:?}", first, second, first.rank())
             }
         }
-        Ok(format!("{}", wins))
     }
+    Ok(wins)
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]

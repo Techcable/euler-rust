@@ -8,7 +8,6 @@ use num::integer::lcm;
 use num::BigInt;
 
 use solutions::EulerProblem;
-use euler::EulerContext;
 use utils::IntegerLogarithm;
 
 type SimplifiedFraction = BigRational;
@@ -95,27 +94,19 @@ impl Add<Expansion> for i32 {
 }
 
 
-#[derive(Default)]
-pub struct SquareRootConvergentsProblem;
-impl EulerProblem for SquareRootConvergentsProblem {
-    fn name(&self) -> &'static str {
-        "square_root_convergents"
-    }
-
-    fn solve(&self, _context: &EulerContext) -> Result<String, Error> {
-        let mut count = 0;
-        for i in 0..1000 {
-            if (i + 1) % 50 == 0 {
-                debug!("Computed {} expansions", i + 1);
-            }
-            let expansion = square_root_expansion(i);
-            let frac = expansion.simplify();
-            if numerator_has_more_digits(frac) {
-                count += 1;
-            }
+pub fn solve() -> i32 {
+    let mut count = 0;
+    for i in 0..1000 {
+        if (i + 1) % 50 == 0 {
+            debug!("Computed {} expansions", i + 1);
         }
-        Ok(format!("{}", count))
+        let expansion = square_root_expansion(i);
+        let frac = expansion.simplify();
+        if numerator_has_more_digits(frac) {
+            count += 1;
+        }
     }
+    count
 }
 
 fn numerator_has_more_digits(frac: SimplifiedFraction) -> bool {
@@ -169,8 +160,8 @@ mod test {
     #[ignore] // too slow
     fn check_answer() {
         assert_eq!(
-            SquareRootConvergentsProblem::solve_default(),
-            "153"
+            solve(),
+            153
         );
     }
 }

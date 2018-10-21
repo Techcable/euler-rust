@@ -1,25 +1,14 @@
-use super::{EulerContext, EulerProblem};
 
 use utils::BigDigits;
 
 use failure::Error;
 
-#[derive(Default)]
-pub struct LychrelNumbersProblem;
-impl EulerProblem for LychrelNumbersProblem {
-    #[inline]
-    fn name(&self) -> &'static str {
-        "lychrel_numbers"
+pub fn solve() -> u32 {
+    let mut count = 0;
+    for value in 0..10_000 {
+        count += is_lycrell_number(value, 50) as u32;
     }
-
-    #[inline]
-    fn solve(&self, _: &EulerContext) -> Result<String, Error> {
-        let mut count = 0;
-        for value in 0..10_000 {
-            count += is_lycrell_number(value, 50) as u32;
-        }
-        Ok(format!("{}", count))
-    }
+    count
 }
 
 #[inline]

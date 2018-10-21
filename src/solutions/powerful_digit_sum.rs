@@ -2,29 +2,17 @@ use failure::Error;
 use num::bigint::BigUint;
 use num::{Integer, ToPrimitive};
 
-use super::EulerProblem;
-use solutions::poker::PokerProblem;
-use euler::EulerContext;
-
-#[derive(Default, Clone)]
-pub struct PowerfulDigitSumProblem;
-impl EulerProblem for PowerfulDigitSumProblem {
-    fn name(&self) -> &'static str {
-        "powerful_digit_sum"
-    }
-
-    fn solve(&self, _: &EulerContext) -> Result<String, Error> {
-        let mut largest_sum = None;
-        for a in 0..100u64 {
-            let a = BigUint::from(a);
-            for b in 0..100 {
-                let power = ::num::pow::pow(a.clone(), b);
-                let sum = sum_big_digits(power);
-                largest_sum = largest_sum.max(Some(sum));
-            }
+pub fn solve() -> u64 {
+    let mut largest_sum = None;
+    for a in 0..100u64 {
+        let a = BigUint::from(a);
+        for b in 0..100 {
+            let power = ::num::pow::pow(a.clone(), b);
+            let sum = sum_big_digits(power);
+            largest_sum = largest_sum.max(Some(sum));
         }
-        Ok(format!("{}", largest_sum.unwrap()))
     }
+    largest_sum.unwrap()
 }
 lazy_static! {
     static ref DIGIT_TABLE: Vec<u8> = {

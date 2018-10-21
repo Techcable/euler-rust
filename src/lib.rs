@@ -16,12 +16,9 @@ extern crate env_logger;
 
 use failure::Error;
 
-pub mod euler;
 pub mod solutions;
 pub mod utils;
 
 pub fn solve_problem(name: &str) -> Result<String, Error> {
-    let context = ::euler::EulerContext::new(name.to_owned());
-    ::solutions::create_problem(name)?
-        .solve(&context)
+    ::solutions::create_problem(name)?.solve()
 }
