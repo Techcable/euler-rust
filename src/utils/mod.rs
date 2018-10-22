@@ -19,6 +19,25 @@ pub use self::integer_logarithm::IntegerLogarithm;
 
 const ASSERT_ROTATE_INDEXES: bool = cfg!(debug_assertions);
 
+/// Cartesian product of input values
+pub fn product<T: Clone>(args: &[T], repeat: usize) -> Vec<Vec<T>> {
+    // Based of python itertools
+    let pools = vec![args; repeat];
+    let mut result = vec![vec![]];
+    for pool in pools {
+        let mut updated_result = Vec::with_capacity(result.len() * pool.len());
+        for x in &result {
+            for y in pool {
+                let mut item = x.clone();
+                item.push(y.clone());
+                updated_result.push(item);
+            }
+        }
+        result = updated_result;
+    }
+    result
+}
+
 pub fn permutations<T: Clone>(values: Vec<T>, k: usize) -> Vec<Vec<T>> {
     let timer = DebugTimer::start();
     let mut result = Vec::new();
@@ -146,7 +165,7 @@ pub fn write_bytes_slice<T: ArbitraryBytes>(slice: &mut [T], value: u8) {
 
 #[cfg(test)]
 mod test {
-    use super::permutations;
+    use super::*;
     #[test]
     fn test_permutations() {
         assert_eq!(
@@ -171,5 +190,21 @@ mod test {
                 vec![2, 1],
             ]
         );
+    }
+    #[test]
+    fn test_product() {
+        assert_eq!(
+            product(&[0, 1], 3),
+            vec![
+                vec![0, 0, 0],
+                vec![0, 0, 1],
+                vec![0, 1, 0],
+                vec![0, 1, 1],
+                vec![1, 0, 0],
+                vec![1, 0, 1],
+                vec![1, 1, 0],
+                vec![1, 1, 1],
+            ]
+        )
     }
 }
