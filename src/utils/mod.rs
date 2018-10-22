@@ -17,35 +17,48 @@ mod integer_logarithm;
 pub use self::digits::{Digits, BigDigits};
 pub use self::integer_logarithm::IntegerLogarithm;
 
-pub fn permutations<T: Clone>(n: usize, mut values: Vec<T>) -> Vec<Vec<T>> {
+pub fn permutations<T: Clone>(values: Vec<T>, k: usize) -> Vec<Vec<T>> {
     let timer = DebugTimer::start();
-    let mut swap_count = 0;
-    let mut swap = |values: &mut Vec<T>, i1: usize, i2: usize| {
-        values.swap(i1, i2);
-        swap_count += 1;
-    };
-    // TODO: We can compute capacity using factorial
     let mut result = Vec::new();
-    let mut c = vec![0usize; n];
-    let mut i = 0;
-    result.push(values.clone());
-    while i < n {
-        if c[i] < i {
-            if i % 2 == 0 {
-                swap(&mut values, 0, i);
-            } else {
-                swap(&mut values, c[i], i);
-            }
-            result.push(values.clone());
-            c[i] += 1;
-            i = 0;
+    permutation_indexes(k, values.len(), |indexes| {
+        result.push(indexes.iter().map(|&index| values[index].clone()).collect())
+    });
+    timer.finish_with(|| format!("Computed {} permutations of {} values", k, values.len()));
+    result
+}
+fn permutation_indexes<F: FnMut(&[usize])>(k: usize, n: usize, mut func: F) {
+    assert!(k <= n);
+    // From https://alistairisrael.wordpress.com/2009/09/22/simple-efficient-pnk-algorithm/
+    let mut a = (0..n).collect::<Vec<_>>();
+    loop {
+        func(&a[..k]);
+        let edge = k - 1;
+        // find j in (k…n-1) where a[j] > a[edge]
+        let mut j = k;
+        while j < n && a[edge] >= a[j] {
+            j += 1;
+        }
+        if j < n {
+            a.swap(edge, j);
         } else {
-            c[i] = 0;
-            i += 1;
+            a[k..].reverse();
+            // find rightmost ascent to left of edge
+            let mut i = edge - 1;
+            while a[i] >= a[i + 1] {
+                if i == 0 {
+                    return // no more permutations
+                }
+                i -= 1;
+            }
+            // find j in (n-1…i+1) where a[j] > a[i]
+            let mut j = n - 1;
+            while j > i && a[i] >= a[j] {
+                j -= 1;
+            }
+            a.swap(i, j);
+            a[(i + 1)..].reverse();
         }
     }
-    timer.finish_with(|| format!("Computed {} permutations of {} values", n, values.len()));
-    result
 }
 
 pub struct DebugTimer {
@@ -134,14 +147,26 @@ mod test {
     #[test]
     fn test_permutations() {
         assert_eq!(
-            permutations(3, vec![0, 1, 2]),
+            permutations(vec![0, 1, 2], 3),
             vec![
                 vec![0, 1, 2],
-                vec![1, 0, 2],
-                vec![2, 0, 1],
                 vec![0, 2, 1],
+                vec![1, 0, 2],
                 vec![1, 2, 0],
+                vec![2, 0, 1],
                 vec![2, 1, 0],
+            ]
+        );
+        assert_eq!(
+            permutations(vec![0, 1, 2], 2),
+            vec![
+                vec![0, 1],
+                vec![0, 2],
+                vec![1, 0],
+                vec![1, 2],
+                vec![2, 0],
+                vec![2, 2],
+                vec![2, 1],
             ]
         );
     }
