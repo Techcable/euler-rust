@@ -6,6 +6,7 @@ mod lychrel_numbers;
 mod powerful_digit_sum;
 mod square_root_convergents;
 mod spiral_primes;
+mod xor_decryption;
 
 pub trait EulerSolution: Sized + ::std::fmt::Display {
     #[inline]
@@ -72,7 +73,7 @@ pub fn create_problem(name: &str) -> Result<EulerProblem, Error> {
         prime_digit_replacements,
         powerful_digit_sum,
         square_root_convergents,
-        spiral_primes
+        spiral_primes, xor_decryption
     })
 }
 
