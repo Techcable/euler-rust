@@ -17,6 +17,8 @@ mod integer_logarithm;
 pub use self::digits::{Digits, BigDigits};
 pub use self::integer_logarithm::IntegerLogarithm;
 
+const ASSERT_ROTATE_INDEXES: bool = cfg!(debug_assertions);
+
 pub fn permutations<T: Clone>(values: Vec<T>, k: usize) -> Vec<Vec<T>> {
     let timer = DebugTimer::start();
     let mut result = Vec::new();
@@ -28,36 +30,37 @@ pub fn permutations<T: Clone>(values: Vec<T>, k: usize) -> Vec<Vec<T>> {
 }
 fn permutation_indexes<F: FnMut(&[usize])>(k: usize, n: usize, mut func: F) {
     assert!(k <= n);
-    // From https://alistairisrael.wordpress.com/2009/09/22/simple-efficient-pnk-algorithm/
-    let mut a = (0..n).collect::<Vec<_>>();
-    loop {
-        func(&a[..k]);
-        let edge = k - 1;
-        // find j in (k…n-1) where a[j] > a[edge]
-        let mut j = k;
-        while j < n && a[edge] >= a[j] {
-            j += 1;
-        }
-        if j < n {
-            a.swap(edge, j);
-        } else {
-            a[k..].reverse();
-            // find rightmost ascent to left of edge
-            let mut i = edge - 1;
-            while a[i] >= a[i + 1] {
-                if i == 0 {
-                    return // no more permutations
+    // From python itertools
+    let mut indexes = (0..n).collect::<Vec<_>>();
+    let mut cycles = (n - k + 1..=n).rev().collect::<Vec<_>>();
+    func(&indexes[..k]);
+    'outer: loop {
+        for i in (0..k).rev() {
+            cycles[i] -= 1;
+            if cycles[i] == 0 {
+                // indices[i:] = indices[i+1:] + indices[i:i+1]
+                let expected = if ASSERT_ROTATE_INDEXES {
+                    Some(indexes[i+1..].iter()
+                        .chain(&indexes[i..(i+1)])
+                        .cloned().collect_vec()
+                    )
+                } else {
+                    None
+                };
+                indexes[i..].rotate_left(1);
+                if let Some(expected) = expected {
+                    assert_eq!(*expected, indexes[i..]);
                 }
-                i -= 1;
+                cycles[i] = n - i;
+            } else {
+                let j = cycles[i];
+                let num_indexes = indexes.len();
+                indexes.swap(i, num_indexes - j);
+                func(&indexes[..k]);
+                continue 'outer;
             }
-            // find j in (n-1…i+1) where a[j] > a[i]
-            let mut j = n - 1;
-            while j > i && a[i] >= a[j] {
-                j -= 1;
-            }
-            a.swap(i, j);
-            a[(i + 1)..].reverse();
         }
+        return;
     }
 }
 
@@ -165,7 +168,6 @@ mod test {
                 vec![1, 0],
                 vec![1, 2],
                 vec![2, 0],
-                vec![2, 2],
                 vec![2, 1],
             ]
         );
