@@ -7,6 +7,8 @@ use fixedbitset::FixedBitSet;
 use ndarray::{NdIndex, IxDyn};
 use itertools::Itertools;
 use itertools::EitherOrBoth::*;
+use num::{BigInt, Integer, Zero, ToPrimitive, Signed};
+use num_traits::NumCast;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Digits {
@@ -174,9 +176,29 @@ impl BigDigits {
     pub fn from_value(value: u64) -> BigDigits {
         BigDigits::from(Digits::from_value(value))
     }
+    pub fn from_big_value(mut num: BigInt) -> BigDigits {
+        if num.is_zero() {
+            return BigDigits::from_value(0)
+        }
+        assert!(!num.is_negative());
+        let ten = BigInt::from(10);
+        let mut result = BigDigits(Vec::new());
+        while !num.is_zero() {
+            let (div, digit) = num.div_mod_floor(&ten);
+            let digit = digit.to_u8().unwrap();
+            result.0.push(digit);
+            num = div;
+        }
+        result.reverse();
+        result
+    }
     #[inline]
     pub fn reverse(&mut self) {
         self.0.reverse();
+    }
+    #[inline]
+    pub fn as_slice(&self) -> &[u8] {
+        &self.0
     }
     pub fn checked_value(&self) -> Option<u64> {
         let mut result = 0u64;

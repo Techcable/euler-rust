@@ -7,6 +7,7 @@ mod powerful_digit_sum;
 mod square_root_convergents;
 mod spiral_primes;
 mod xor_decryption;
+mod convergents_of_e;
 
 pub trait EulerSolution: Sized + ::std::fmt::Display {
     #[inline]
@@ -73,7 +74,8 @@ pub fn create_problem(name: &str) -> Result<EulerProblem, Error> {
         prime_digit_replacements,
         powerful_digit_sum,
         square_root_convergents,
-        spiral_primes, xor_decryption
+        spiral_primes, xor_decryption,
+        convergents_of_e
     })
 }
 

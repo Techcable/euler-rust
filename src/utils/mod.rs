@@ -13,9 +13,11 @@ use itertools::EitherOrBoth::*;
 pub mod primes;
 mod digits;
 mod integer_logarithm;
+mod continued_fraction;
 
 pub use self::digits::{Digits, BigDigits};
 pub use self::integer_logarithm::IntegerLogarithm;
+pub use self::continued_fraction::ContinuedFraction;
 
 const ASSERT_ROTATE_INDEXES: bool = cfg!(debug_assertions);
 
@@ -108,7 +110,7 @@ impl DebugTimer {
             let elapsed = start.elapsed();
             debug!(
                 "{} in {:.2} ms",
-                msg, elapsed.as_float_secs() * 1000.0
+                msg, elapsed.as_secs_f64() * 1000.0
             );
         }
     }
